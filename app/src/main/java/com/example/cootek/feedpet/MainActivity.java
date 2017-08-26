@@ -1,6 +1,11 @@
 package com.example.cootek.feedpet;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -8,6 +13,8 @@ import android.widget.Toast;
 import com.example.commonlibrary.mvp.BaseActivity;
 import com.example.commonlibrary.rxbus.RxBusManager;
 import com.example.commonlibrary.utils.CommonLogger;
+
+import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -46,7 +53,37 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void initData() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothDevice.ACTION_FOUND);//每搜索到一个设备就会发送一个该广播
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);//当全部搜索完后发送该广播
+        filter.setPriority(Integer.MAX_VALUE);//设置优先级
+// 注册蓝牙搜索广播接收者，接收并处理搜索结果
+        blueToothBroadCastReceiver = new BlueToothBroadCastReceiver();
+        registerReceiver(blueToothBroadCastReceiver, filter);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        // 如果蓝牙设置使能未打开，请求打开设备
+        if (!mBluetoothAdapter.isEnabled()) {
+            // 打开蓝牙设备
+            Intent enable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enable, 1);
+
+
+            //使蓝牙设备可见，方便配对
+            Intent in = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            in.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            startActivity(in);
+
+            findDevice();
+
+        } else {
+            //使蓝牙设备可见，方便配对
+            Intent in = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            in.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            startActivity(in);
+            //设配器中寻找已匹配过的设备
+            findDevice();
+        }
+
         RxBusManager.getInstance().registerEvent(BlueToothEvent.class,
                 new Consumer<BlueToothEvent>() {
                     @Override
@@ -64,6 +101,18 @@ public class MainActivity extends BaseActivity {
 
     }
 
+    private void findDevice() {
+
+        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+        if (pairedDevices.size() > 0) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (BluetoothDevice device : pairedDevices) {
+                stringBuilder.append(device.getName() + ":" + device.getAddress() + "\n");
+            }
+            CommonLogger.e("已有信息：" + stringBuilder.toString());
+        }
+    }
+
     @Override
     public void updateData(Object o) {
 
@@ -72,9 +121,24 @@ public class MainActivity extends BaseActivity {
 
     @OnClick(R.id.tv_activity_main_search)
     public void onViewClicked() {
+        CommonLogger.e("11ssss");
         if (mBluetoothAdapter.isDiscovering()) {
             mBluetoothAdapter.cancelDiscovery();
         }
         mBluetoothAdapter.startDiscovery();
+    }
+
+    private class BlueToothBroadCastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            CommonLogger.e("接收到");
+            if (intent.getAction().equals(BluetoothDevice.ACTION_FOUND)) {
+//            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
+                double distane = BlueToothUtil.getDistance(rssi);
+                BlueToothEvent blueToothEvent = new BlueToothEvent(distane);
+                RxBusManager.getInstance().post(blueToothEvent);
+            }
+        }
     }
 }
