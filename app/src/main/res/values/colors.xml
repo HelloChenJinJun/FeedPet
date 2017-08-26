@@ -3,4 +3,9 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="BLUE">#00ccff</color>
+    <color name="BLACK">#000000</color>
+    <color name="WHITE">#ffffff</color>
+    <color name="Transparent">#00000000</color>
+    <color name="Grey">#666666</color>
 </resources>

@@ -7,12 +7,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.commonlibrary.mvp.BaseActivity;
 import com.example.commonlibrary.rxbus.RxBusManager;
 import com.example.commonlibrary.utils.CommonLogger;
+import com.example.cootek.feedpet.ui.AddPetInfoActivity;
+import com.example.cootek.feedpet.ui.TimeSportActivity;
 
 import java.util.Set;
 
@@ -25,11 +30,13 @@ import io.reactivex.functions.Consumer;
 public class MainActivity extends BaseActivity {
 
 
-    @BindView(R.id.tv_activity_main_search)
-    TextView search;
     private BluetoothAdapter mBluetoothAdapter;
     private BlueToothBroadCastReceiver blueToothBroadCastReceiver;
     private BluePresenter bluePresenter;
+    private Button addPetInfo;
+    private TextView tvTimeTogether;
+    private TextView tvSportTime;
+    private ImageView upImageView;
 
     @Override
     protected boolean isNeedHeadLayout() {
@@ -48,7 +55,30 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void initView() {
+        addPetInfo= (Button) findViewById(R.id.add_pet_info);
+        tvTimeTogether= (TextView) findViewById(R.id.tv_time_together);
+        tvSportTime= (TextView) findViewById(R.id.tv_sport_time);
+        upImageView= (ImageView) findViewById(R.id.main_up);
+        setOnClickListener();
+    }
 
+    public void setOnClickListener(){
+        addPetInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent();
+                intent.setClass(MainActivity.this, AddPetInfoActivity.class);
+                startActivity(intent);
+            }
+        });
+        upImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent();
+                intent.setClass(MainActivity.this,TimeSportActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -118,15 +148,15 @@ public class MainActivity extends BaseActivity {
 
     }
 
-
-    @OnClick(R.id.tv_activity_main_search)
-    public void onViewClicked() {
-        CommonLogger.e("11ssss");
-        if (mBluetoothAdapter.isDiscovering()) {
-            mBluetoothAdapter.cancelDiscovery();
-        }
-        mBluetoothAdapter.startDiscovery();
-    }
+//
+//    @OnClick(R.id.tv_activity_main_search)
+//    public void onViewClicked() {
+//        CommonLogger.e("11ssss");
+//        if (mBluetoothAdapter.isDiscovering()) {
+//            mBluetoothAdapter.cancelDiscovery();
+//        }
+//        mBluetoothAdapter.startDiscovery();
+//    }
 
     private class BlueToothBroadCastReceiver extends BroadcastReceiver {
         @Override
@@ -138,7 +168,7 @@ public class MainActivity extends BaseActivity {
                 double distane = BlueToothUtil.getDistance(rssi);
                 BlueToothEvent blueToothEvent = new BlueToothEvent(distane);
                 RxBusManager.getInstance().post(blueToothEvent);
-            }
+        }
         }
     }
 }
