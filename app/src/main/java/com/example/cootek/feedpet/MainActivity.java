@@ -2,6 +2,7 @@ package com.example.cootek.feedpet;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -14,7 +15,9 @@ import com.example.commonlibrary.mvp.BaseActivity;
 import com.example.commonlibrary.rxbus.RxBusManager;
 import com.example.commonlibrary.utils.CommonLogger;
 
+import java.io.IOException;
 import java.util.Set;
+import java.util.UUID;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -51,12 +54,17 @@ public class MainActivity extends BaseActivity {
 
     }
 
+    private static final UUID MY_UUID = UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c6666");
+
     @Override
     protected void initData() {
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_FOUND);//每搜索到一个设备就会发送一个该广播
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);//当全部搜索完后发送该广播
         filter.setPriority(Integer.MAX_VALUE);//设置优先级
+        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        filter.addAction(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE);
 // 注册蓝牙搜索广播接收者，接收并处理搜索结果
         blueToothBroadCastReceiver = new BlueToothBroadCastReceiver();
         registerReceiver(blueToothBroadCastReceiver, filter);
@@ -88,9 +96,24 @@ public class MainActivity extends BaseActivity {
                 new Consumer<BlueToothEvent>() {
                     @Override
                     public void accept(@NonNull BlueToothEvent blueToothEvent) throws Exception {
-
+//                        这边通过设备id从服务器那边获取用户id
                         Toast.makeText(MainActivity.this, "接受到距离信息", Toast.LENGTH_SHORT).show();
                         CommonLogger.e("信息:" + blueToothEvent.getDistance());
+
+                        if (blueToothEvent.getStatus() == BlueToothEvent.CONNECTED) {
+                            try {
+                                BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(blueToothEvent.getDeviceAddress());
+                                BluetoothSocket bluetoothSocket = device.createInsecureRfcommSocketToServiceRecord(MY_UUID);
+                                bluetoothSocket.connect();
+                            } catch (IOException e) {
+                                CommonLogger.e("连接失败" + e.getMessage());
+                                e.printStackTrace();
+                            }
+
+                        } else if (blueToothEvent.getStatus() == BlueToothEvent.DISCONNECTED) {
+
+                        }
+
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -102,7 +125,6 @@ public class MainActivity extends BaseActivity {
     }
 
     private void findDevice() {
-
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         if (pairedDevices.size() > 0) {
             StringBuilder stringBuilder = new StringBuilder();
@@ -132,13 +154,52 @@ public class MainActivity extends BaseActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             CommonLogger.e("接收到");
+            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             if (intent.getAction().equals(BluetoothDevice.ACTION_FOUND)) {
-//            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
-                double distane = BlueToothUtil.getDistance(rssi);
-                BlueToothEvent blueToothEvent = new BlueToothEvent(distane);
-                RxBusManager.getInstance().post(blueToothEvent);
+                CommonLogger.e("设备名字" + device.getName() + "设备id" + device.getAddress());
+                if (device.getAddress() != null && device.getAddress().equals("1C:48:CE:E3:CA:F7")) {
+                    int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
+                    double distane = BlueToothUtil.getDistance(rssi);
+                    String deviceName = device.getName();
+                    String deviceAddress = device.getAddress();
+                    BlueToothEvent blueToothEvent = new BlueToothEvent();
+                    blueToothEvent.setStatus(BlueToothEvent.CONNECTED);
+                    blueToothEvent.setDeviceAddress(deviceAddress);
+                    blueToothEvent.setDeviceName(deviceName);
+                    blueToothEvent.setDistance(distane);
+                    RxBusManager.getInstance().post(blueToothEvent);
+                }
+            } else if (intent.getAction().equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
+                CommonLogger.e("断开啦啦啦");
+                if (device.getAddress() != null && device.getAddress().equals("1C:48:CE:E3:CA:F7")) {
+                    int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
+                    double distane = BlueToothUtil.getDistance(rssi);
+                    String deviceName = device.getName();
+                    String deviceAddress = device.getAddress();
+                    BlueToothEvent blueToothEvent = new BlueToothEvent();
+                    blueToothEvent.setStatus(BlueToothEvent.CONNECTED);
+                    blueToothEvent.setDeviceAddress(deviceAddress);
+                    blueToothEvent.setDeviceName(deviceName);
+                    blueToothEvent.setDistance(distane);
+//                    RxBusManager.getInstance().post(blueToothEvent);
+                }
+            } else if (intent.getAction().equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)) {
+                CommonLogger.e("STATE_设备名字" + device.getName() + "设备id" + device.getAddress() + "bound" + intent.getIntExtra(BluetoothDevice
+                        .EXTRA_BOND_STATE, 0));
+                int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, 0);
+                CommonLogger.e("状态" + state);
+
             }
+
+        }
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (blueToothBroadCastReceiver != null) {
+            unregisterReceiver(blueToothBroadCastReceiver);
         }
     }
 }
