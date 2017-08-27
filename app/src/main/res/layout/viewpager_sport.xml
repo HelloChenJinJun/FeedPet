@@ -1,27 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:background="@drawable/viewpager_circle">
-    <!--<ImageView-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:src="@drawable/viewpager_circle"/>-->
+    android:layout_width="100dp"
+    android:layout_height="100dp">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:src="@drawable/viewpager_circle" />
+
     <TextView
         android:id="@+id/sport_text_view"
-        android:text="1111"
-        android:textColor="@color/BLACK"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:textSize="40sp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:text="0米"
+        android:textColor="@color/BLACK"
+        android:textSize="40sp" />
+
     <TextView
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="45dp"
-        android:text="运动量"
-        android:textSize="25sp"
-        android:textColor="@color/BLUE"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="70dp"
+        android:text="运动量"
+        android:textColor="@color/BLUE"
+        android:textSize="25sp" />
 
 </RelativeLayout>

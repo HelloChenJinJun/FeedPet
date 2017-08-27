@@ -11,6 +11,13 @@ import com.example.cootek.feedpet.R;
  * Created by Vivian on 2017/8/27.
  */
 
+
+
+/**
+ *
+ * 信息指南界面
+ *
+ * */
 public class PetGuideDetailActivity extends AppCompatActivity {
     private int[] detailImages={R.drawable.detail_pet_clean,R.drawable.detail_pet_sport,R.drawable.detail_pet_feed
             ,R.drawable.detail_pet_health,R.drawable.detail_pet_train};

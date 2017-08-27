@@ -1,8 +1,5 @@
-package com.example.cootek.feedpet;
+package com.example.cootek.feedpet.bean;
 
-import com.google.gson.Gson;
-
-import io.reactivex.disposables.Disposable;
 
 /**
  * Created by COOTEK on 2017/8/27.

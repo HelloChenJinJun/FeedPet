@@ -1,38 +1,41 @@
 package com.example.cootek.feedpet;
 
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.example.commonlibrary.mvp.BaseActivity;
+import com.example.commonlibrary.baseadapter.EmptyLayout;
 import com.example.commonlibrary.rxbus.RxBusManager;
 import com.example.commonlibrary.utils.CommonLogger;
-import com.example.cootek.feedpet.ui.AddPetInfoActivity;
+import com.example.cootek.feedpet.bean.ResultBean;
+import com.example.cootek.feedpet.bean.UserBean;
+import com.example.cootek.feedpet.event.BlueToothEvent;
+import com.example.cootek.feedpet.mvp.BluePresenter;
+import com.example.cootek.feedpet.ui.MainBaseActivity;
 import com.example.cootek.feedpet.ui.TimeSportActivity;
 
-import java.io.IOException;
+import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Consumer;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends MainBaseActivity {
 
 
+    private static final int REQUEST_CODE_USER_BEAN = 11;
     private BluetoothAdapter mBluetoothAdapter;
     private BlueToothBroadCastReceiver blueToothBroadCastReceiver;
     private BluePresenter bluePresenter;
@@ -40,6 +43,8 @@ public class MainActivity extends BaseActivity {
     private TextView tvTimeTogether;
     private TextView tvSportTime;
     private ImageView upImageView;
+    private RelativeLayout container;
+
 
     @Override
     protected boolean isNeedHeadLayout() {
@@ -58,27 +63,28 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void initView() {
-        addPetInfo= (Button) findViewById(R.id.add_pet_info);
-        tvTimeTogether= (TextView) findViewById(R.id.tv_time_together);
-        tvSportTime= (TextView) findViewById(R.id.tv_sport_time);
-        upImageView= (ImageView) findViewById(R.id.main_up);
+        container = (RelativeLayout) findViewById(R.id.main_activity);
+        addPetInfo = (Button) findViewById(R.id.add_pet_info);
+        tvTimeTogether = (TextView) findViewById(R.id.tv_time_together);
+        tvSportTime = (TextView) findViewById(R.id.tv_sport_time);
+        upImageView = (ImageView) findViewById(R.id.main_up);
         setOnClickListener();
     }
 
-    public void setOnClickListener(){
+    public void setOnClickListener() {
         addPetInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent=new Intent();
-                intent.setClass(MainActivity.this, AddPetInfoActivity.class);
-                startActivity(intent);
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this, PetInfoActivity.class);
+                startActivityForResult(intent, REQUEST_CODE_USER_BEAN);
             }
         });
         upImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent=new Intent();
-                intent.setClass(MainActivity.this,TimeSportActivity.class);
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this, TimeSportActivity.class);
                 startActivity(intent);
             }
         });
@@ -88,6 +94,12 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void initData() {
+        bluePresenter = new BluePresenter(this, null);
+        List<UserBean> list = MainApplication.getMainComponent().getDaoSession().getUserBeanDao().queryBuilder().list();
+        if (list != null && list.size() > 0) {
+            UserBean userBean = list.get(0);
+//            updateView();
+        }
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_FOUND);//每搜索到一个设备就会发送一个该广播
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);//当全部搜索完后发送该广播
@@ -122,28 +134,12 @@ public class MainActivity extends BaseActivity {
             findDevice();
         }
 
-        RxBusManager.getInstance().registerEvent(BlueToothEvent.class,
-                new Consumer<BlueToothEvent>() {
+        RxBusManager.getInstance().registerEvent(RefreshEvent.class,
+                new Consumer<RefreshEvent>() {
                     @Override
-                    public void accept(@NonNull BlueToothEvent blueToothEvent) throws Exception {
-//                        这边通过设备id从服务器那边获取用户id
-                        Toast.makeText(MainActivity.this, "接受到距离信息", Toast.LENGTH_SHORT).show();
-                        CommonLogger.e("信息:" + blueToothEvent.getDistance());
-
-                        if (blueToothEvent.getStatus() == BlueToothEvent.CONNECTED) {
-                            try {
-                                BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(blueToothEvent.getDeviceAddress());
-                                BluetoothSocket bluetoothSocket = device.createInsecureRfcommSocketToServiceRecord(MY_UUID);
-                                bluetoothSocket.connect();
-                            } catch (IOException e) {
-                                CommonLogger.e("连接失败" + e.getMessage());
-                                e.printStackTrace();
-                            }
-
-                        } else if (blueToothEvent.getStatus() == BlueToothEvent.DISCONNECTED) {
-
-                        }
-
+                    public void accept(@NonNull RefreshEvent refreshEvent) throws Exception {
+                        CommonLogger.e("刷新数据到啦啦");
+                        updateView(refreshEvent.getTime(), refreshEvent.getDistance());
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -151,6 +147,48 @@ public class MainActivity extends BaseActivity {
                         CommonLogger.e("接受信息出错" + throwable.getMessage());
                     }
                 });
+        if (MainApplication.getMainComponent().getDaoSession().getUserBeanDao().queryBuilder().list().size() != 0) {
+            upImageView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    showLoad();
+                    bluePresenter.loadUserInfo();
+                    container.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            CommonLogger.e("换");
+                            container.setBackgroundResource(getRandom());
+                            container.postDelayed(this, 10000);
+                        }
+                    });
+                }
+            }, 200);
+        }
+    }
+
+    private int getRandom() {
+        Random random = new Random();
+        int position = random.nextInt(3);
+        CommonLogger.e("数" + position);
+        switch (position) {
+            case 0:
+                return R.drawable.pet_happy;
+            case 1:
+                return R.drawable.pet_normal;
+            case 2:
+                return R.drawable.pet_sad;
+        }
+        return R.drawable.pet_happy;
+    }
+
+
+    private AlertDialog progressDialog;
+
+    private void showLoad() {
+        if (progressDialog == null) {
+            progressDialog = new ProgressDialog.Builder(this).setMessage("正在刷新....").create();
+        }
+        progressDialog.show();
 
     }
 
@@ -167,8 +205,28 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void updateData(Object o) {
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
+        CommonLogger.e("这里哈哈哈");
+
+        if (o != null) {
+            ResultBean resultBean = (ResultBean) o;
+            updateView(resultBean.getData().get(0).get(1), resultBean.getData().get(0).get(0));
+            UserBean userBean = MainApplication.getMainComponent().getDaoSession().getUserBeanDao().queryBuilder()
+                    .where(UserBeanDao.Properties.User_id.eq("1")).list().get(0);
+            if (((ResultBean) o).getData().get(0).get(1) > userBean.getTime()) {
+                userBean.setTime(resultBean.getData().get(0).get(1));
+            }
+            if (((ResultBean) o).getData().get(0).get(0) > userBean.getDistance()) {
+                userBean.setDistance(resultBean.getData().get(0).get(0));
+            }
+            MainApplication.getMainComponent().getDaoSession().getUserBeanDao().insertOrReplace(userBean);
+        }
+
 
     }
+
 
 //
 //    @OnClick(R.id.tv_activity_main_search)
@@ -179,6 +237,13 @@ public class MainActivity extends BaseActivity {
 //        }
 //        mBluetoothAdapter.startDiscovery();
 //    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        bluePresenter.loadUserInfo();
+    }
 
     private class BlueToothBroadCastReceiver extends BroadcastReceiver {
         @Override
@@ -224,6 +289,35 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            if (requestCode == REQUEST_CODE_USER_BEAN) {
+                CommonLogger.e("这里嗯嗯呃");
+                updateView(data.getLongExtra("time", 0), data.getIntExtra("distance", 0));
+            }
+        }
+    }
+
+
+    @Override
+    public void showError(String errorMsg, EmptyLayout.OnRetryListener listener) {
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
+    }
+
+    private void updateView(long one, int two) {
+        CommonLogger.e("这里返回啦啦");
+        if (tvTimeTogether != null) {
+            tvTimeTogether.setText(one + "分钟");
+        }
+        if (tvSportTime != null) {
+            tvSportTime.setText(two + "米");
+        }
+    }
 
     @Override
     protected void onDestroy() {

@@ -2,6 +2,7 @@ package com.example.cootek.feedpet;
 
 import com.example.commonlibrary.baseadapter.BaseRecyclerAdapter;
 import com.example.commonlibrary.baseadapter.BaseWrappedViewHolder;
+import com.example.cootek.feedpet.bean.BlueToothItem;
 
 /**
  * Created by COOTEK on 2017/8/26.

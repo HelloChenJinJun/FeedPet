@@ -1,4 +1,4 @@
-package com.example.cootek.feedpet;
+package com.example.cootek.feedpet.bean;
 
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Id;
@@ -10,23 +10,27 @@ import org.greenrobot.greendao.annotation.Generated;
 @Entity
 public class UserBean {
 
-    @Id
+
     private String device;
-    private String id;
+    @Id
+    private String user_id;
     private long time;
     private String deviceName;
     private String nickname;
-    private int breed;
+    private String breed;
     private int age;
     private String date;
-    private String distance;
+    private int distance;
+    private String name;
+    private String raise_time;
 
 
-    @Generated(hash = 1649485248)
-    public UserBean(String device, String id, long time, String deviceName,
-            String nickname, int breed, int age, String date, String distance) {
+    @Generated(hash = 1569143572)
+    public UserBean(String device, String user_id, long time, String deviceName,
+                    String nickname, String breed, int age, String date, int distance, String name,
+                    String raise_time) {
         this.device = device;
-        this.id = id;
+        this.user_id = user_id;
         this.time = time;
         this.deviceName = deviceName;
         this.nickname = nickname;
@@ -34,11 +38,14 @@ public class UserBean {
         this.age = age;
         this.date = date;
         this.distance = distance;
+        this.name = name;
+        this.raise_time = raise_time;
     }
 
     @Generated(hash = 1203313951)
     public UserBean() {
     }
+
 
     public String getDevice() {
         return device;
@@ -48,13 +55,6 @@ public class UserBean {
         this.device = device;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public long getTime() {
         return time;
@@ -80,11 +80,11 @@ public class UserBean {
         this.nickname = nickname;
     }
 
-    public int getBreed() {
+    public String getBreed() {
         return breed;
     }
 
-    public void setBreed(int breed) {
+    public void setBreed(String breed) {
         this.breed = breed;
     }
 
@@ -104,11 +104,35 @@ public class UserBean {
         this.date = date;
     }
 
-    public String getDistance() {
+    public int getDistance() {
         return this.distance;
     }
 
-    public void setDistance(String distance) {
+    public void setDistance(int distance) {
         this.distance = distance;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getUser_id() {
+        return this.user_id;
+    }
+
+    public void setUser_id(String user_id) {
+        this.user_id = user_id;
+    }
+
+    public String getRaise_time() {
+        return this.raise_time;
+    }
+
+    public void setRaise_time(String raise_time) {
+        this.raise_time = raise_time;
     }
 }

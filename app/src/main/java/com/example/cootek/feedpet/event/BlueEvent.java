@@ -1,8 +1,13 @@
-package com.example.cootek.feedpet;
+package com.example.cootek.feedpet.event;
 
 /**
  * Created by COOTEK on 2017/8/26.
  */
+
+/**
+ *
+ *
+ * */
 
 public class BlueEvent {
 

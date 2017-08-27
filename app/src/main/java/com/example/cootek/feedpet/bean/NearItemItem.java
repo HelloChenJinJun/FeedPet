@@ -1,4 +1,4 @@
-package com.example.cootek.feedpet;
+package com.example.cootek.feedpet.bean;
 
 /**
  * Created by COOTEK on 2017/8/27.
@@ -7,10 +7,19 @@ package com.example.cootek.feedpet;
 public class NearItemItem {
     private String user_id;
     private String device;
-    private int raise_time;
+    private int period;
     private String end_time;
     private int flag;
 
+
+    public int getPeriod() {
+        return period;
+    }
+
+
+    public void setPeriod(int period) {
+        this.period = period;
+    }
 
     public int getFlag() {
         return flag;
@@ -36,14 +45,6 @@ public class NearItemItem {
         this.device = device;
     }
 
-
-    public int getRaise_time() {
-        return raise_time;
-    }
-
-    public void setRaise_time(int raise_time) {
-        this.raise_time = raise_time;
-    }
 
     public String getEnd_time() {
         return end_time;

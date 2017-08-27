@@ -16,6 +16,7 @@ import com.google.gson.Gson;
 
 /**
  * Created by Vivian on 2017/8/27.
+ * 添加宠物信息
  */
 
 public class AddPetInfoActivity extends AppCompatActivity {
@@ -29,6 +30,7 @@ public class AddPetInfoActivity extends AppCompatActivity {
     private PetInfo petInfo;
     private String deviceId;
     private Gson gson;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,31 +38,32 @@ public class AddPetInfoActivity extends AppCompatActivity {
         initView();
     }
 
-    public void initView(){
-        leftButton= (ImageView) findViewById(R.id.pet_info_left_button);
-        petNick= (EditText) findViewById(R.id.edit_pet_nick);
-        petKind= (EditText) findViewById(R.id.edit_pet_kind);
-        petAge= (EditText) findViewById(R.id.edit_pet_age);
-        feedDate= (EditText) findViewById(R.id.edit_feed_date);
-        deviceIdSpinner= (Spinner) findViewById(R.id.spinner_deviceid);
-        providePetInfo= (ImageView) findViewById(R.id.provide_pet_info);
-        deviceIdSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                deviceId= (String) deviceIdSpinner.getSelectedItem();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
+    public void initView() {
+        leftButton = (ImageView) findViewById(R.id.pet_info_left_button);
+        petNick = (EditText) findViewById(R.id.edit_pet_nick);
+        petKind = (EditText) findViewById(R.id.edit_pet_kind);
+        petAge = (EditText) findViewById(R.id.edit_pet_age);
+        feedDate = (EditText) findViewById(R.id.edit_feed_date);
+//        deviceIdSpinner= (Spinner) findViewById(R.id.spinner_deviceid);
+        providePetInfo = (ImageView) findViewById(R.id.provide_pet_info);
+//        deviceIdSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//            @Override
+//            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+//                deviceId= (String) deviceIdSpinner.getSelectedItem();
+//
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView<?> adapterView) {
+//
+//            }
+//        });
         providePetInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (deviceId==null){
-                    Toast.makeText(AddPetInfoActivity.this,"信息不完整",Toast.LENGTH_SHORT).show();
-                }else {
+                if (deviceId == null) {
+                    Toast.makeText(AddPetInfoActivity.this, "信息不完整", Toast.LENGTH_SHORT).show();
+                } else {
 
                 }
             }
@@ -73,9 +76,9 @@ public class AddPetInfoActivity extends AppCompatActivity {
         });
     }
 
-    public String getPetInfo(){
-        petInfo=new PetInfo();
-        gson=new Gson();
+    public String getPetInfo() {
+        petInfo = new PetInfo();
+        gson = new Gson();
         petInfo.setId(001);
         petInfo.setNickname(petNick.getText().toString());
         petInfo.setDevice(deviceId);

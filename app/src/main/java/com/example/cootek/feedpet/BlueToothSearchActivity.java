@@ -4,8 +4,6 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -17,6 +15,9 @@ import android.view.View;
 import com.example.commonlibrary.baseadapter.SuperRecyclerView;
 import com.example.commonlibrary.baseadapter.WrappedLinearLayoutManager;
 import com.example.commonlibrary.baseadapter.listener.OnSimpleItemClickListener;
+import com.example.commonlibrary.mvp.BaseActivity;
+import com.example.commonlibrary.utils.CommonLogger;
+import com.example.cootek.feedpet.bean.BlueToothItem;
 
 import butterknife.BindView;
 
@@ -24,7 +25,7 @@ import butterknife.BindView;
  * Created by COOTEK on 2017/8/26.
  */
 
-public class BlueToothSearchActivity extends MainBaseActivity implements SwipeRefreshLayout.OnRefreshListener {
+public class BlueToothSearchActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener {
     @BindView(R.id.srcv_activity_bluetooth_search)
     SuperRecyclerView display;
     @BindView(R.id.refresh_activity_blue_tooth_search_refresh)
@@ -104,6 +105,7 @@ public class BlueToothSearchActivity extends MainBaseActivity implements SwipeRe
         display.post(new Runnable() {
             @Override
             public void run() {
+                com.example.cootek.feedpet.BlueToothBroadCastReceiver.setAuto(false);
                 blueToothSearchPresenter.search();
             }
         });
@@ -117,13 +119,13 @@ public class BlueToothSearchActivity extends MainBaseActivity implements SwipeRe
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
-                        UserBean userBean = new UserBean();
-                        userBean.setDevice(item.getAddress());
-                        userBean.setId(getUserId(item.getAddress()));
-                        MainApplication.getMainComponent().getDaoSession().getUserBeanDao().insertOrReplace(userBean);
+                        CommonLogger.e("设备id" + item.getAddress());
                         BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
-                        Intent intent = new Intent(BlueToothSearchActivity.this, SucessActivity.class);
-                        startActivity(intent);
+                        Intent intent = new Intent();
+                        intent.putExtra("deviceName", item.getName());
+                        intent.putExtra("deviceId", item.getAddress());
+                        setResult(RESULT_OK, intent);
+                        finish();
                     }
                 }).setNegativeButton("取消", new DialogInterface.OnClickListener() {
             @Override

@@ -1,12 +1,14 @@
 package com.example.cootek.feedpet;
 
-import android.app.Application;
 import android.content.SharedPreferences;
 
 import com.amap.api.maps.AMapUtils;
 import com.amap.api.maps.model.LatLng;
 import com.example.commonlibrary.BaseApplication;
+import com.example.commonlibrary.rxbus.RxBusManager;
 import com.example.commonlibrary.utils.CommonLogger;
+import com.example.cootek.feedpet.bean.DistanceItem;
+import com.example.cootek.feedpet.bean.UserBean;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -48,23 +50,37 @@ public class MainApplication extends BaseApplication implements LocationChangedL
 
     }
 
+
+    private long totalDistance;
+
     @Override
     public void onLocationChanged(List<String> addressList, double latitude, double longitude) {
         if (sharedPreferences != null && sharedPreferences.getBoolean("isNear", false)) {
 //            在旁边的前提下
             CommonLogger.e("获取到最新的距离啦啦");
-            final String distance = getDistance(longitude, latitude);
+            final int distance = getDistance(longitude, latitude);
+            CommonLogger.e("获取到最新的距离啦啦::" + distance);
+            List<UserBean> list = MainApplication.getMainComponent().getDaoSession().getUserBeanDao().queryBuilder().where(UserBeanDao.Properties.User_id.eq("1")).list();
+            if (list != null && list.size() > 0) {
+                UserBean userBean = list.get(0);
+                userBean.setDistance(distance + userBean.getDistance());
+                getMainComponent().getDaoSession().getUserBeanDao().insertOrReplace(userBean);
+                RefreshEvent refreshEvent = new RefreshEvent();
+                refreshEvent.setTime((int) userBean.getTime());
+                refreshEvent.setDistance(userBean.getDistance());
+                RxBusManager.getInstance().post(refreshEvent);
+            }
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     DistanceItem distanceItem = new DistanceItem();
                     UserBean bean = getMainComponent().getDaoSession().getUserBeanDao().queryBuilder().list().get(0);
                     distanceItem.setFlag(0);
-                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     distanceItem.setEnd_time(simpleDateFormat.format(new Date(System.currentTimeMillis())));
-                    distanceItem.setUser_id(bean.getId());
+                    distanceItem.setUser_id(bean.getUser_id());
                     distanceItem.setDevice(bean.getDevice());
-                    distanceItem.setDistance(distance);
+                    distanceItem.setDistance(distance + "");
                     OkHttpClient okHttpClient = getAppComponent().getOkHttpClient();
                     Gson gson = new Gson();
                     RequestBody requestBody = RequestBody.create(MediaType.parse("text"), gson.toJson(distanceItem));
@@ -89,12 +105,12 @@ public class MainApplication extends BaseApplication implements LocationChangedL
     }
 
 
-    public String getDistance(double longitude, double latitude) {
+    public int getDistance(double longitude, double latitude) {
         if (preLatitude != 0 && preLongtitude != 0) {
             int distance = (int) AMapUtils.calculateLineDistance(new LatLng(preLatitude, preLongtitude), new LatLng(latitude, longitude));
-            return distance + "";
+            return distance;
         } else {
-            return "0";
+            return 0;
         }
     }
 }

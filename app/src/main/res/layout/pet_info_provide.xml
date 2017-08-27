@@ -153,17 +153,12 @@
             android:layout_marginTop="36dp"
             android:text="设备ID：" />
 
-        <Spinner
-            android:id="@+id/spinner_deviceid"
-            android:background="@color/Grey"
-            android:textSize="20sp"
-            android:layout_width="match_parent"
+
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/textView5"
-            android:layout_alignLeft="@+id/edit_feed_date"
-            android:layout_alignStart="@+id/edit_feed_date"
-            android:layout_alignRight="@+id/edit_feed_date"
-            android:layout_alignEnd="@+id/edit_feed_date" />
+            android:id="@+id/tv_provide_device"/>
+
 
         <ImageView
             android:id="@+id/provide_pet_info"

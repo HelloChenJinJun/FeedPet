@@ -5,10 +5,12 @@ import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 
 import com.example.commonlibrary.rxbus.RxBusManager;
 import com.example.commonlibrary.utils.CommonLogger;
+import com.example.cootek.feedpet.bean.BlueToothItem;
+import com.example.cootek.feedpet.bean.UserBean;
+import com.example.cootek.feedpet.event.BlueEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +38,11 @@ public class BlueToothBroadCastReceiver extends BroadcastReceiver {
         if (intent.getAction().equals("android.bluetooth.adapter.action.DISCOVERY_FINISHED")) {
             if (pre != null && pre.equals(BluetoothDevice.ACTION_FOUND)) {
                 BlueToothItem blueToothItem = new BlueToothItem();
-                UserBean userBean = MainApplication.getMainComponent().getDaoSession().getUserBeanDao().queryBuilder().list().get(0);
+                List<UserBean> list = MainApplication.getMainComponent().getDaoSession().getUserBeanDao().queryBuilder().list();
+                if (list != null && list.size() == 0) {
+                    return;
+                }
+                UserBean userBean = list.get(0);
                 blueToothItem.setName(userBean.getDeviceName());
                 blueToothItem.setAddress(userBean.getDevice());
                 BlueEvent blueEvent = new BlueEvent();

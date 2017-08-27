@@ -1,4 +1,4 @@
-package com.example.cootek.feedpet;
+package com.example.cootek.feedpet.bean;
 
 /**
  * Created by COOTEK on 2017/8/27.

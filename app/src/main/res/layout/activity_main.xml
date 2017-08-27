@@ -44,7 +44,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="60dp"
-        android:text="1111"
+        android:text="0分"
         android:textColor="@color/BLACK"
         android:textSize="20sp" />
 
@@ -68,17 +68,18 @@
         android:text="运动量"
         android:textColor="@color/BLACK"
         android:textSize="20sp" />
+
     <TextView
         android:id="@+id/tv_sport_time"
-        android:text="1111"
-        android:textColor="@color/BLACK"
-        android:textSize="20sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_marginBottom="10dp"
         android:layout_marginRight="70dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:text="0米"
+        android:textColor="@color/BLACK"
+        android:textSize="20sp" />
 
     <ImageView
         android:id="@+id/main_up"
